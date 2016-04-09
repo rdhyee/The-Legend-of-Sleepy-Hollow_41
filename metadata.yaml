@@ -1,0 +1,30 @@
+_repo: The-Legend-of-Sleepy-Hollow_41
+_version: 0.0.1
+creator:
+  author:
+    agent_name: Irving, Washington
+    alias: Crayon, Geoffrey
+    birthdate: 1783
+    deathdate: 1859
+    gutenberg_agent_id: '34'
+    url: http://www.gutenberg.org/2009/agents/34
+    wikipedia: http://en.wikipedia.org/wiki/Washington_Irving
+description: ''
+gutenberg_bookshelf:
+- Children's Literature
+- Harvard Classics
+gutenberg_issued: '2008-06-27'
+gutenberg_type: Text
+identifiers:
+  gutenberg: '41'
+language: en
+publisher: Project Gutenberg
+rights: Public domain in the USA.
+rights_url: http://creativecommons.org/about/pdm
+subjects:
+- !lcc 'PS'
+- !lcsh 'New York (State) -- History -- 1775-1865 -- Fiction'
+- !lcsh 'Ghosts -- Fiction'
+- GITenberg
+title: The Legend of Sleepy Hollow
+url: http://www.gutenberg.org/ebooks/41
