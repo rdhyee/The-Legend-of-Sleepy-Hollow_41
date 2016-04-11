@@ -1,0 +1,59 @@
+sudo: required
+dist: trusty
+language: ruby
+
+before_install:
+- gem install asciidoctor -v 1.5.2 
+- gem install tilt
+- sudo pip install git+https://github.com/rdhyee/ebooklib.git
+script:
+- VERSION=`ruby -e "require 'yaml'; meta = YAML.load_file('metadata.yaml'); puts meta['_version'];"`
+- git clone https://github.com/gitenberg-dev/asciidoctor-htmlbook.git
+
+- sudo pip install -r asciidoctor-htmlbook/gitberg-machine/requirements.txt
+- asciidoctor -a toc,idprefix=xx_,version=$VERSION -b xhtml5 -T ./asciidoctor-htmlbook/htmlbook-autogen/
+  -d book book.asciidoc -o book.html
+- git clone https://github.com/gitenberg-dev/HTMLBook
+
+# make book.html available to jinja2 environment by putting it into templates
+- cp book.html asciidoctor-htmlbook/gitberg-machine/templates/
+
+- /usr/bin/python asciidoctor-htmlbook/gitberg-machine/machine.py -o . -m metadata.yaml book.html
+- xsltproc -stringparam external.assets.list " " ./HTMLBook/htmlbook-xsl/epub.xsl book.html
+- cp ./HTMLBook/stylesheets/epub/epub.css OEBPS
+- if [ -e cover.jpg ]; then cp cover.jpg OEBPS/cover.jpg; fi
+# look for first images directory and one found, copy over to ./OEBPS
+- find . -name images -type d | head -n 1 | xargs -I {} mv {} ./OEBPS/
+- zip -rX book.epub mimetype
+- zip -rX book.epub OEBPS/ META-INF/
+- if test -d "OEBPS/images/"; then zip -rX book.epub OEBPS/images/ ;fi
+- mv book.epub The-Legend-of-Sleepy-Hollow.epub
+- ebook-convert The-Legend-of-Sleepy-Hollow.epub The-Legend-of-Sleepy-Hollow.mobi
+- xvfb-run ebook-convert The-Legend-of-Sleepy-Hollow.epub The-Legend-of-Sleepy-Hollow.pdf
+branches:
+  only:
+  - master
+notifications:
+  webhooks:
+    urls:
+      - https://unglue.it/api/travisci/webhook
+    on_success: always
+    on_failure: never
+    on_start: never
+deploy:
+  skip_cleanup: true
+  provider: releases
+  api_key:
+    secure: Z+t3EEV1wi7MruMw8TPmyNctyj+pQr2G4bQ2aBn6/+9CkBtCJOR+2TChamg+++QOQOh0Otzeo/mJyqdTMumNRQU/+7aMLCPH//sJsG35163eEo+ecFdMH1Vn6ehX4RLqR9Bzf5b/+ex2a3SM4NpupjtVE5qiGBPvt5JGYNKOBSZgZE2vKgA2B5R2VbgHmKsmiLWq2M4ulBJsOs+0+ntpVVMlbt7fIqAoU+nBnbulicon5YyDOdsVLkw4NpR/GaXuHh6eMnk3xzhU5R8dkq8SFEn8cpZCNXCaMsALc14ZXEbjep690z7c3JrHGfypoP9xHLN2b4nD4E4M88Ar1J9x7qf+5TBgPN2k133LdYlHoPG4taTQ+y7OZAqyTrAvbuTqvjUV6Y07gh3nEQDoHiOZavfM91v8UaFUx2nWt/T1R32Gs+J7EwKCZP4KSaNzpguevPjGbM6TUCzoZQ0+w0aMvxzOv7mXXkPOL/w/fhK3tk+VGFucijtRPP40ypRJQeIK6+hvo1SkktnZrpJY5sN0GlYI7lUVum+z/Ygvcu6DC64eJru+qdbl640gDywGTmvE0CT5ypAzQH998OW5KLxLpUMnhvuUiEeHnAStc15hjmNZ8Ke21afYP966NaUX50FbgDseVeXOhZgFfluJre6uR9u/ncq3xNXOIGfCuJx8+uc=
+  file:
+    - The-Legend-of-Sleepy-Hollow.epub
+    - The-Legend-of-Sleepy-Hollow.mobi
+    - The-Legend-of-Sleepy-Hollow.pdf
+  "on":
+    repo: GITenberg/The-Legend-of-Sleepy-Hollow_41
+addons:
+  apt:
+    packages:
+    - xsltproc
+    - xvfb
+    - calibre
